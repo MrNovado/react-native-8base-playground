@@ -1,4 +1,6 @@
 import React from "react";
+import Auth0 from "react-native-auth0";
+
 import { Text, StatusBar } from "react-native";
 import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from "@apollo/client";
 
@@ -7,7 +9,12 @@ import { Provider as PaperProvider, ActivityIndicator, Appbar, Colors, Button } 
 
 import env from "./env.json";
 
-const { REACT_APP_API_ENDPOINT } = env as Record<string, string>;
+const { REACT_APP_API_ENDPOINT, REACT_APP_AUTH_DOMAIN, REACT_APP_AUTH_CLIENT_ID } = env as Record<string, string>;
+
+const auth0 = new Auth0({
+  domain: REACT_APP_AUTH_DOMAIN,
+  clientId: REACT_APP_AUTH_CLIENT_ID,
+});
 
 const client = new ApolloClient({
   uri: REACT_APP_API_ENDPOINT,
@@ -40,6 +47,7 @@ const ErrorMessage = styled.Text`
 `;
 
 function Content() {
+  const [credentials, setCredentials] = React.useState<any>(null);
   const { data, loading, error, refetch } = useQuery(
     gql`
       query MyQuery {
@@ -57,8 +65,24 @@ function Content() {
   );
 
   const handleRefetch = () => {
-    console.log("refetch-requested");
+    console.info("refetch-requested");
     refetch();
+  };
+
+  const handleLogIn = () => {
+    console.info("login-requested");
+    auth0.webAuth
+      .authorize({ scope: "openid email profile" })
+      .then((credentials) => setCredentials(credentials))
+      .catch((error) => console.error(error));
+  };
+
+  const handleLogOut = () => {
+    console.info("logout-requested");
+    auth0.webAuth
+      .clearSession()
+      .then(() => setCredentials(null))
+      .catch((error) => console.error(error));
   };
 
   const queryResult = (function renderQ() {
@@ -86,13 +110,24 @@ function Content() {
     return <Text>Unknown Query State!</Text>;
   })();
 
+  const auth0Actions = (function renderAuthActions() {
+    if (credentials) {
+      return <Appbar.Action icon="logout" onPress={handleLogOut} />;
+    } else {
+      return [
+        <Appbar.Action key={1} icon="logout" onPress={handleLogOut} />,
+        <Appbar.Action key={2} icon="login" onPress={handleLogIn} />,
+      ];
+    }
+  })();
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <AppContentContainer>
         <ContentView>{queryResult}</ContentView>
         <Appbar>
-          <Appbar.Action icon="restart" onPress={handleRefetch} />
+          {auth0Actions}
           <Appbar.Content title="URI" subtitle={REACT_APP_API_ENDPOINT} />
         </Appbar>
       </AppContentContainer>
