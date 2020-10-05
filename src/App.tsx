@@ -53,8 +53,13 @@ function Content() {
         }
       }
     `,
-    { fetchPolicy: "no-cache" },
+    { fetchPolicy: "network-only" },
   );
+
+  const handleRefetch = () => {
+    console.log("refetch-requested");
+    refetch();
+  };
 
   const queryResult = (function renderQ() {
     if (loading) {
@@ -71,7 +76,7 @@ function Content() {
       return (
         <>
           <Text>{message}</Text>
-          <Button icon="restart" mode="contained" onPress={refetch}>
+          <Button icon="restart" mode="contained" onPress={handleRefetch}>
             Refetch
           </Button>
         </>
@@ -87,7 +92,7 @@ function Content() {
       <AppContentContainer>
         <ContentView>{queryResult}</ContentView>
         <Appbar>
-          <Appbar.Action icon="restart" onPress={refetch} />
+          <Appbar.Action icon="restart" onPress={handleRefetch} />
           <Appbar.Content title="URI" subtitle={REACT_APP_API_ENDPOINT} />
         </Appbar>
       </AppContentContainer>
