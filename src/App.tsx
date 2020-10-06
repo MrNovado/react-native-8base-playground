@@ -73,7 +73,11 @@ function Content() {
     console.info("login-requested");
     auth0.webAuth
       .authorize({ scope: "openid email profile" })
-      .then((credentials) => setCredentials(credentials))
+      .then((credentials) => {
+        setCredentials(credentials);
+        return credentials;
+      })
+      .then((credentials) => console.info("user is authorized!", credentials))
       .catch((error) => console.error(error));
   };
 
@@ -82,6 +86,7 @@ function Content() {
     auth0.webAuth
       .clearSession()
       .then(() => setCredentials(null))
+      .then(() => console.info("logout successful"))
       .catch((error) => console.error(error));
   };
 
@@ -114,10 +119,7 @@ function Content() {
     if (credentials) {
       return <Appbar.Action icon="logout" onPress={handleLogOut} />;
     } else {
-      return [
-        <Appbar.Action key={1} icon="logout" onPress={handleLogOut} />,
-        <Appbar.Action key={2} icon="login" onPress={handleLogIn} />,
-      ];
+      return <Appbar.Action icon="login" onPress={handleLogIn} />;
     }
   })();
 
@@ -128,6 +130,7 @@ function Content() {
         <ContentView>{queryResult}</ContentView>
         <Appbar>
           {auth0Actions}
+          <Appbar.Content title="CRD" subtitle={credentials ? JSON.stringify(credentials) : "log-in-first"} />
           <Appbar.Content title="URI" subtitle={REACT_APP_API_ENDPOINT} />
         </Appbar>
       </AppContentContainer>

@@ -37,6 +37,7 @@ local.properties
 #
 .env
 env.json
+apikeys.xml
 node_modules/
 npm-debug.log
 yarn-error.log
