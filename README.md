@@ -4,6 +4,16 @@
   - https://callstack.github.io/react-native-paper/icons.html
   - https://materialdesignicons.com/
 
+- UI: `paper`/react-native quirk: `React.Fragment` does not let styles to propagate, so you should return arrays instead of wrapping components into fragments, like 
+
+```js
+[
+  <Appbar.Action key={0} ... />,
+  <Appbar.Action key={1} ... />,
+  ...
+]
+```
+
 # Issues
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
@@ -30,16 +40,6 @@
   - It is possible to simply use `gitignore` to ignore config artefacts
     - `src/env.json` (note: hiding json files by prepending them with `.` will break `sha` decoding)
     - `android/app/src/main/res/values/apikeys.xml`
-
-- UI: `paper`/react-native quirk: `React.Fragment` does not let styles to propagate, so you should return arrays instead of wrapping components into fragments, like 
-
-```js
-[
-  <Appbar.Action key={0} ... />,
-  <Appbar.Action key={1} ... />,
-  ...
-]
-```
 
 # APIKEYS
 
