@@ -11,7 +11,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
-    "@apollo/client": "^3.2.2",
+    "@apollo/react-hooks": "^4.0.0",
+    "apollo-boost": "^0.4.9",
     "graphql": "^15.3.0",
     "react": "16.13.1",
     "react-native": "0.63.2",

@@ -1,11 +1,12 @@
 import React from "react";
 import Auth0, { Credentials } from "react-native-auth0";
 
-import { Text, StatusBar } from "react-native";
-import { ApolloClient, InMemoryCache, ApolloProvider, ApolloLink, gql, useQuery } from "@apollo/client";
-import { Observable } from "@apollo/client/utilities";
+import { ApolloClient, InMemoryCache, gql, ApolloLink, HttpLink } from "apollo-boost";
+import { ErrorLink } from "apollo-link-error";
+import { ApolloProvider, useQuery } from "@apollo/react-hooks";
 
 import styled from "styled-components/native";
+import { Text, StatusBar } from "react-native";
 import { Provider as PaperProvider, ActivityIndicator, Appbar, Colors, Button } from "react-native-paper";
 
 import env from "./env.json";
@@ -34,39 +35,53 @@ const auth0Client = new Auth0({
  */
 const globalAuthTokenRef: { current: Credentials | null } = { current: null };
 const apolloClient = new ApolloClient({
-  uri: REACT_APP_API_ENDPOINT,
   cache: new InMemoryCache(),
   /**
    * GRAPHQL-MIDDLEWARES
    */
-  // link: ApolloLink.from([
-  //   /**
-  //    * AUTH-LINK
-  //    */
-  //   // new ApolloLink((operation, forward) => {
-  //   //   operation.setContext(({ headers = {} }) => {
-  //   //     const credentials = globalAuthTokenRef.current;
-  //   //     console.info("request:setting-header", credentials ? "authorized" : "guest");
-  //   //     return {
-  //   //       headers: {
-  //   //         ...headers,
-  //   //         ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
-  //   //         workspace: REACT_APP_WORKSPACE_ID,
-  //   //       },
-  //   //     };
-  //   //   });
+  link: ApolloLink.from([
+    /**
+     * AUTH
+     */
+    new ApolloLink((operation, forward) => {
+      operation.setContext(({ headers = {} }) => {
+        const credentials = globalAuthTokenRef.current;
+        console.info("request:setting-header", credentials ? "authorized" : "guest");
+        return {
+          headers: {
+            ...headers,
+            ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
+            workspace: REACT_APP_WORKSPACE_ID,
+          },
+        };
+      });
 
-  //   //   return forward ? forward(operation) : Observable.of();
-  //   // }),
-  //   /**
-  //    * TEST-EMPTY-LINK
-  //    */
-  //   ApolloLink.empty(),
-  // ]),
+      return forward ? forward(operation) : null;
+    }),
+    /**
+     * ERROR
+     */
+    new ErrorLink(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
+        );
+      }
+
+      if (networkError) {
+        console.error(`[Network error]: ${networkError}`);
+      }
+    }),
+    /**
+     * HTTP
+     */
+    new HttpLink({ uri: REACT_APP_API_ENDPOINT }),
+  ]),
 });
 
 function App() {
   return (
+    // @ts-ignore
     <ApolloProvider client={apolloClient}>
       <PaperProvider>
         <Content />
@@ -113,7 +128,7 @@ function Content() {
         }
       }
     `,
-    { fetchPolicy: "network-only" },
+    { fetchPolicy: "network-only", onError: console.error },
   );
 
   /**
@@ -122,7 +137,8 @@ function Content() {
 
   const handleRefetch = () => {
     console.info("refetch-requested");
-    refetch();
+    // https://github.com/apollographql/apollo-client/issues/3876
+    refetch().catch(console.error);
   };
 
   const handleLogIn = () => {
