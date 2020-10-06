@@ -7,6 +7,7 @@
 - [x] Install auth0 & make sure it can be used for simple oauth
 - [ ] Link auth-token to gql-requests via gql-links
 - [ ] Find a solution to filestack
+- [ ] Find a solution for routing (note: `react-navigation` conflicts wtih auth0 web-flow)
 
 # Quirks
 
