@@ -47,6 +47,6 @@
 
 ```
 <resources>
-    <string name="auth_domain">novado-dev.eu.auth0.com</string>
+    <string name="auth_domain">AUTH0_DOMAIN</string>
 </resources>
 ```
