@@ -1,3 +1,13 @@
+# Plan
+
+- [x] Try `paper`
+- [x] Try `styled-components/native`
+- [x] Work out simple workflow using private api-keys
+- [x] Install appollo & make sure it can query stuff from a non-restricted 8base-workspace
+- [x] Install auth0 & make sure it can be used for simple oauth
+- [ ] Link auth-token to gql-requests via gql-links
+- [ ] Find a solution to filestack
+
 # Quirks
 
 - `paper` uses `react-native-vector-icons`; list of all avaliable icons could be found here:
