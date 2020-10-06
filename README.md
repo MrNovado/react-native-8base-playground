@@ -27,7 +27,8 @@
 
 # Issues
 
-- `apollo/@client` links are not working for some reason
+- `apollo/@client` `v3` links are not working for some reason (at least for the Android)
+  - https://github.com/apollographql/apollo-client/issues/6520
   - https://github.com/apollographql/apollo-client/issues/7126
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
