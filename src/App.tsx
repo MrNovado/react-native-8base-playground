@@ -1,35 +1,83 @@
 import React from "react";
-import Auth0 from "react-native-auth0";
+import Auth0, { Credentials } from "react-native-auth0";
 
 import { Text, StatusBar } from "react-native";
-import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider, ApolloLink, gql, useQuery } from "@apollo/client";
+import { Observable } from "@apollo/client/utilities";
 
 import styled from "styled-components/native";
 import { Provider as PaperProvider, ActivityIndicator, Appbar, Colors, Button } from "react-native-paper";
 
 import env from "./env.json";
 
-const { REACT_APP_API_ENDPOINT, REACT_APP_AUTH_DOMAIN, REACT_APP_AUTH_CLIENT_ID } = env as Record<string, string>;
+/**
+ * ==========================CONFIGURATION=====================================
+ */
 
-const auth0 = new Auth0({
+const {
+  REACT_APP_WORKSPACE_ID,
+  REACT_APP_API_ENDPOINT,
+  REACT_APP_AUTH_DOMAIN,
+  REACT_APP_AUTH_CLIENT_ID,
+} = env as Record<string, string>;
+
+/**
+ * AUTH0
+ */
+const auth0Client = new Auth0({
   domain: REACT_APP_AUTH_DOMAIN,
   clientId: REACT_APP_AUTH_CLIENT_ID,
 });
 
-const client = new ApolloClient({
+/**
+ * GRAPHQL
+ */
+const globalAuthTokenRef: { current: Credentials | null } = { current: null };
+const apolloClient = new ApolloClient({
   uri: REACT_APP_API_ENDPOINT,
   cache: new InMemoryCache(),
+  /**
+   * GRAPHQL-MIDDLEWARES
+   */
+  // link: ApolloLink.from([
+  //   /**
+  //    * AUTH-LINK
+  //    */
+  //   // new ApolloLink((operation, forward) => {
+  //   //   operation.setContext(({ headers = {} }) => {
+  //   //     const credentials = globalAuthTokenRef.current;
+  //   //     console.info("request:setting-header", credentials ? "authorized" : "guest");
+  //   //     return {
+  //   //       headers: {
+  //   //         ...headers,
+  //   //         ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
+  //   //         workspace: REACT_APP_WORKSPACE_ID,
+  //   //       },
+  //   //     };
+  //   //   });
+
+  //   //   return forward ? forward(operation) : Observable.of();
+  //   // }),
+  //   /**
+  //    * TEST-EMPTY-LINK
+  //    */
+  //   ApolloLink.empty(),
+  // ]),
 });
 
 function App() {
   return (
-    <ApolloProvider client={client}>
+    <ApolloProvider client={apolloClient}>
       <PaperProvider>
         <Content />
       </PaperProvider>
     </ApolloProvider>
   );
 }
+
+/**
+ * ==========================PRESENTATION & FEATURES===========================
+ */
 
 const AppContentContainer = styled.SafeAreaView`
   flex: 1;
@@ -47,7 +95,11 @@ const ErrorMessage = styled.Text`
 `;
 
 function Content() {
-  const [credentials, setCredentials] = React.useState<any>(null);
+  /**
+   * DATA
+   */
+
+  const [credentials, setCredentials] = React.useState<Credentials | null>(null);
   const { data, loading, error, refetch } = useQuery(
     gql`
       query MyQuery {
@@ -64,6 +116,10 @@ function Content() {
     { fetchPolicy: "network-only" },
   );
 
+  /**
+   * HANDLING
+   */
+
   const handleRefetch = () => {
     console.info("refetch-requested");
     refetch();
@@ -71,7 +127,7 @@ function Content() {
 
   const handleLogIn = () => {
     console.info("login-requested");
-    auth0.webAuth
+    auth0Client.webAuth
       .authorize({ scope: "openid email profile" })
       .then((credentials) => {
         setCredentials(credentials);
@@ -83,12 +139,16 @@ function Content() {
 
   const handleLogOut = () => {
     console.info("logout-requested");
-    auth0.webAuth
+    auth0Client.webAuth
       .clearSession()
       .then(() => setCredentials(null))
       .then(() => console.info("logout successful"))
       .catch((error) => console.error(error));
   };
+
+  /**
+   * QUERY PRESENTAION
+   */
 
   const queryResult = (function renderQ() {
     if (loading) {
@@ -97,7 +157,14 @@ function Content() {
 
     if (error) {
       const message = JSON.stringify(error, null, 2);
-      return <ErrorMessage>{message}</ErrorMessage>;
+      return (
+        <>
+          <ErrorMessage>{message}</ErrorMessage>
+          <Button icon="restart" mode="contained" onPress={handleRefetch}>
+            Refetch
+          </Button>
+        </>
+      );
     }
 
     if (data) {
@@ -115,13 +182,20 @@ function Content() {
     return <Text>Unknown Query State!</Text>;
   })();
 
-  const auth0Actions = (function renderAuthActions() {
-    if (credentials) {
-      return <Appbar.Action icon="logout" onPress={handleLogOut} />;
-    } else {
-      return <Appbar.Action icon="login" onPress={handleLogIn} />;
-    }
-  })();
+  /**
+   * GENERAL EFFECTS
+   */
+
+  React.useEffect(
+    function invalidateCredentials() {
+      globalAuthTokenRef.current = credentials;
+    },
+    [credentials],
+  );
+
+  /**
+   * GENERAL PRESENTATION
+   */
 
   return (
     <>
@@ -129,7 +203,11 @@ function Content() {
       <AppContentContainer>
         <ContentView>{queryResult}</ContentView>
         <Appbar>
-          {auth0Actions}
+          {credentials ? (
+            <Appbar.Action icon="logout" onPress={handleLogOut} />
+          ) : (
+            <Appbar.Action icon="login" onPress={handleLogIn} />
+          )}
           <Appbar.Content title="CRD" subtitle={credentials ? JSON.stringify(credentials) : "log-in-first"} />
           <Appbar.Content title="URI" subtitle={REACT_APP_API_ENDPOINT} />
         </Appbar>

@@ -7,11 +7,11 @@
 - [x] Install auth0 & make sure it can be used for simple oauth
 - [ ] Link auth-token to gql-requests via gql-links
 - [ ] Find a solution to filestack
-- [ ] Find a solution for routing (note: `react-navigation` conflicts wtih auth0 web-flow)
+- [ ] Find a solution to routing (note: `react-navigation` conflicts wtih auth0 web-flow)
 
 # Quirks
 
-- `paper` uses `react-native-vector-icons`; list of all avaliable icons could be found here:
+- `paper` uses `react-native-vector-icons` __which you will have to link manually!__; list of all avaliable icons could be found here:
   - https://callstack.github.io/react-native-paper/icons.html
   - https://materialdesignicons.com/
 
@@ -26,6 +26,9 @@
 ```
 
 # Issues
+
+- `apollo/@client` links are not working for some reason
+  - https://github.com/apollographql/apollo-client/issues/7126
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
   - Regular web app works: https://community.auth0.com/t/success-login-and-a-failed-exchange/41513/10
