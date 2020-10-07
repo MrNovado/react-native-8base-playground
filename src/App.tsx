@@ -2,8 +2,8 @@ import React from "react";
 import Auth0, { Credentials } from "react-native-auth0";
 
 import { Text, StatusBar } from "react-native";
-import { ApolloClient, InMemoryCache, ApolloProvider, ApolloLink, gql, useQuery } from "@apollo/client";
-import { Observable } from "@apollo/client/utilities";
+import { ApolloClient, InMemoryCache, ApolloProvider, ApolloLink, HttpLink, gql, useQuery } from "@apollo/client";
+import { onError } from "@apollo/client/link/error";
 
 import styled from "styled-components/native";
 import { Provider as PaperProvider, ActivityIndicator, Appbar, Colors, Button } from "react-native-paper";
@@ -34,35 +34,53 @@ const auth0Client = new Auth0({
  */
 const globalAuthTokenRef: { current: Credentials | null } = { current: null };
 const apolloClient = new ApolloClient({
-  uri: REACT_APP_API_ENDPOINT,
   cache: new InMemoryCache(),
   /**
    * GRAPHQL-MIDDLEWARES
    */
-  // link: ApolloLink.from([
-  //   /**
-  //    * AUTH-LINK
-  //    */
-  //   // new ApolloLink((operation, forward) => {
-  //   //   operation.setContext(({ headers = {} }) => {
-  //   //     const credentials = globalAuthTokenRef.current;
-  //   //     console.info("request:setting-header", credentials ? "authorized" : "guest");
-  //   //     return {
-  //   //       headers: {
-  //   //         ...headers,
-  //   //         ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
-  //   //         workspace: REACT_APP_WORKSPACE_ID,
-  //   //       },
-  //   //     };
-  //   //   });
+  link: ApolloLink.from([
+    /**
+     * AUTH -- mutating headers
+     */
 
-  //   //   return forward ? forward(operation) : Observable.of();
-  //   // }),
-  //   /**
-  //    * TEST-EMPTY-LINK
-  //    */
-  //   ApolloLink.empty(),
-  // ]),
+    new ApolloLink((operation, forward) => {
+      operation.setContext(({ headers = {} }) => {
+        const credentials = globalAuthTokenRef.current;
+        console.info("request:setting-header", credentials ? "authorized" : "guest");
+        return {
+          headers: {
+            ...headers,
+            ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
+            workspace: REACT_APP_WORKSPACE_ID,
+          },
+        };
+      });
+
+      return forward ? forward(operation) : null;
+    }),
+
+    /**
+     * ERROR -- logging network / cache errors
+     */
+
+    onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        graphQLErrors.forEach(({ message, locations, path }) =>
+          console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`),
+        );
+      }
+
+      if (networkError) {
+        console.error(`[Network error]: ${networkError}`);
+      }
+    }),
+
+    /**
+     * HTTP -- setting endpoint uri
+     */
+
+    new HttpLink({ uri: REACT_APP_API_ENDPOINT }),
+  ]),
 });
 
 function App() {

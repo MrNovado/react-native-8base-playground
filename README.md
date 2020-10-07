@@ -30,6 +30,7 @@
 - `apollo/@client` `v3` links are not working for some reason (at least for the Android)
   - https://github.com/apollographql/apollo-client/issues/6520
   - https://github.com/apollographql/apollo-client/issues/7126
+  - You have to use `HttpLink` in order to set your endpoint' `URI`! Setting `uri` directly in the apollo' config `new ApolloClient({ uri })` makes network flaky when you start adding links!
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
   - Regular web app works: https://community.auth0.com/t/success-login-and-a-failed-exchange/41513/10
