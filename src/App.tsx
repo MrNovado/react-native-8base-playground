@@ -47,13 +47,15 @@ const apolloClient = new ApolloClient({
       operation.setContext(({ headers = {} }) => {
         const credentials = globalAuthTokenRef.current;
         console.info("request:setting-header", credentials ? "authorized" : "guest");
-        return {
+        const res = {
           headers: {
             ...headers,
-            ...(credentials ? { authorization: `Bearer ${credentials.accessToken}` } : {}),
+            ...(credentials ? { Authorization: `Bearer ${credentials.idToken}` } : {}),
             workspace: REACT_APP_WORKSPACE_ID,
           },
         };
+        console.info("request:header", res);
+        return res;
       });
 
       return forward ? forward(operation) : null;
@@ -83,6 +85,9 @@ const apolloClient = new ApolloClient({
   ]),
 });
 
+/**
+ * PROVIDERS
+ */
 function App() {
   return (
     <ApolloProvider client={apolloClient}>
@@ -121,12 +126,12 @@ function Content() {
   const { data, loading, error, refetch } = useQuery(
     gql`
       query MyQuery {
-        usersList {
+        usersList(first: 1) {
           count
           items {
             id
-            email
             firstName
+            email
           }
         }
       }
