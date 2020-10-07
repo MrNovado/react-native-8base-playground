@@ -5,7 +5,8 @@
 - [x] Work out simple workflow using private api-keys
 - [x] Install appollo & make sure it can query stuff from a non-restricted 8base-workspace
 - [x] Install auth0 & make sure it can be used for simple oauth
-- [ ] Link auth-token to gql-requests via gql-links
+- [x] Link auth-token to gql-requests via gql-links
+  - [ ] Test auth link on against restricted workspace
 - [ ] Find a solution to filestack
 - [ ] Find a solution to routing (note: `react-navigation` conflicts wtih auth0 web-flow)
 
@@ -28,9 +29,10 @@
 # Issues
 
 - `apollo/@client` `v3` links are not working for some reason (at least for the Android)
-  - https://github.com/apollographql/apollo-client/issues/6520
-  - https://github.com/apollographql/apollo-client/issues/7126
+  - https://github.com/apollographql/apollo-client/issues/6520 ?? subs
+  - https://github.com/apollographql/apollo-client/issues/7126 ?? some other network issue
   - You have to use `HttpLink` in order to set your endpoint' `URI`! Setting `uri` directly in the apollo' config `new ApolloClient({ uri })` makes network flaky when you start adding links!
+  - The issue was you should never mix setting `uri` to the apollo config & links together. Either use `uri` or `links` -- not both.
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
   - Regular web app works: https://community.auth0.com/t/success-login-and-a-failed-exchange/41513/10
