@@ -28,7 +28,7 @@
 
 # Issues
 
-- ios issue with react-native-vector-icons (fonts linking) oblador/react-native-vector-icons#135
+- ios issue with `react-native-vector-icons` (fonts linking) https://github.com/oblador/react-native-vector-icons/issues/135
 
 - `apollo/@client` `v3` ~~links are not working for some reason (at least for the Android)~~
   - https://github.com/apollographql/apollo-client/issues/6520 ?? subs
