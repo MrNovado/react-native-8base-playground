@@ -8,7 +8,7 @@
 - [x] Link auth-token to gql-requests via gql-links
   - [x] Test auth link against restricted workspace
 - [ ] Find a solution to filestack
-- [ ] Find a solution to routing (note: `react-navigation` conflicts wtih auth0 web-flow)
+- [x] Find a solution to routing (note: `react-navigation` conflicts wtih auth0 web-flow)
 
 # Quirks
 
@@ -36,6 +36,10 @@
 
 - Auth0 !!! Do not forget to actually select the type of your auth0-app-type
   - Regular web app works: https://community.auth0.com/t/success-login-and-a-failed-exchange/41513/10
+
+- Auth0 -- configure & set callbacks:
+  - https://github.com/auth0/react-native-auth0#configuration
+  - https://github.com/auth0/react-native-auth0#callback-urls
 
 - Inflightlink observables cannot serialize cyclic structures (`@apollo/client`)
   - https://github.com/apollographql/apollo-client/issues/1291#issuecomment-367911441
